@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Futures Planner Pro + Quick Stack</title>
+    <title>Futures Planner Pro + Logic Safety</title>
     <style>
         :root { 
             --bg: #0f172a; --card: #1e293b; --input: #0f172a; 
@@ -33,6 +33,7 @@
             background: var(--input); color: white; box-sizing: border-box; font-size: 16px; -webkit-appearance: none;
         }
         input:focus { border-color: var(--accent); outline: none; }
+        input.input-error { border-color: var(--danger) !important; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
 
         .contract-controls { display: flex; align-items: center; gap: 8px; margin-bottom: 15px; flex-wrap: nowrap; }
         .qty-input-wrapper { flex: 1; min-width: 80px; }
@@ -64,9 +65,12 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); color: #cbd5e1;
         }
 
-        .result-box { margin-top: 5px; padding: 20px; border-radius: 12px; background: rgba(15, 23, 42, 0.8); border-left: 4px solid var(--accent); }
+        .result-box { margin-top: 5px; padding: 20px; border-radius: 12px; background: rgba(15, 23, 42, 0.8); border-left: 4px solid var(--accent); transition: 0.3s; }
+        .result-box.error-state { border-left-color: var(--danger); background: rgba(127, 29, 29, 0.4); }
+        
         .profit { color: var(--success); font-weight: 800; font-size: 1.2rem; }
         .loss { color: var(--danger); font-weight: 800; font-size: 1.2rem; }
+        .err-msg { color: #fca5a5; font-size: 0.85rem; font-weight: 700; display: block; margin-bottom: 4px; }
         
         .rr-line { margin-top: 15px; padding-top: 12px; border-top: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
         .rr-val { background: var(--accent); color: #0f172a; padding: 4px 12px; border-radius: 6px; font-weight: 900; }
@@ -212,9 +216,15 @@
     }
 
     function resetForm() {
-        ['entry', 'tp', 'sl'].forEach(id => document.getElementById(id).value = '');
+        ['entry', 'tp', 'sl'].forEach(id => {
+            const el = document.getElementById(id);
+            el.value = '';
+            el.classList.remove('input-error');
+        });
         document.getElementById('contracts').value = 1;
-        document.getElementById('resultDisplay').innerHTML = '<span style="color:#64748b">Ready to trade...</span>';
+        const res = document.getElementById('resultDisplay');
+        res.innerHTML = '<span style="color:#64748b">Ready to trade...</span>';
+        res.classList.remove('error-state');
     }
 
     function calculate() {
@@ -222,8 +232,33 @@
         const tp = parseFloat(document.getElementById('tp').value);
         const sl = parseFloat(document.getElementById('sl').value);
         const qty = parseInt(document.getElementById('contracts').value) || 1;
+        
+        const resBox = document.getElementById('resultDisplay');
+        const entryEl = document.getElementById('entry');
+        const tpEl = document.getElementById('tp');
+        const slEl = document.getElementById('sl');
+
+        // Reset errors
+        [entryEl, tpEl, slEl].forEach(el => el.classList.remove('input-error'));
+        resBox.classList.remove('error-state');
 
         if (isNaN(entry) || isNaN(tp) || isNaN(sl)) return;
+
+        // Logic Check
+        let errorMsg = "";
+        if (currentDir === 'long') {
+            if (tp <= entry) { errorMsg = "LONG ERROR: Target must be ABOVE Entry"; tpEl.classList.add('input-error'); }
+            else if (sl >= entry) { errorMsg = "LONG ERROR: Stop must be BELOW Entry"; slEl.classList.add('input-error'); }
+        } else {
+            if (tp >= entry) { errorMsg = "SHORT ERROR: Target must be BELOW Entry"; tpEl.classList.add('input-error'); }
+            else if (sl <= entry) { errorMsg = "SHORT ERROR: Stop must be ABOVE Entry"; slEl.classList.add('input-error'); }
+        }
+
+        if (errorMsg !== "") {
+            resBox.classList.add('error-state');
+            resBox.innerHTML = `<span class="err-msg">${errorMsg}</span><small style="color:#94a3b8">Check your price points...</small>`;
+            return;
+        }
 
         const s = specs[currentTicker];
         const tickVal = (currentType === 'standard') ? s.stdValue : s.micValue;
@@ -235,7 +270,7 @@
         const loss = slTicks * tickVal * qty;
         const rr = slTicks !== 0 ? (tpTicks / slTicks).toFixed(2) : "0";
 
-        document.getElementById('resultDisplay').innerHTML = `
+        resBox.innerHTML = `
             <div style="margin-bottom:8px">Profit: <span class="profit">+$${profit.toLocaleString(undefined, {minimumFractionDigits: 2})}</span> <small style="color:#94a3b8; display:block;">${Math.round(tpTicks)} ticks @ ${qty} qty</small></div>
             <div>Risk: <span class="loss">-$${loss.toLocaleString(undefined, {minimumFractionDigits: 2})}</span> <small style="color:#94a3b8; display:block;">${Math.round(slTicks)} ticks @ ${qty} qty</small></div>
             <div class="rr-line">
