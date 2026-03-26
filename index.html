@@ -7,25 +7,30 @@
     <style>
         :root { 
             --bg: #0f172a; --card: #1e293b; --input: #0f172a; 
-            --accent: #38bdf8; --text: #f8fafc; --success: #4ade80; --danger: #f87171; 
+            --accent: #38bdf8; --text: #f8fafc; --success: #10b981; --danger: #ef4444; 
         }
         
         body { font-family: -apple-system, system-ui, sans-serif; padding: 15px; background: var(--bg); color: var(--text); display: flex; justify-content: center; margin: 0; }
         .calc-card { background: var(--card); padding: 20px; border-radius: 20px; width: 100%; max-width: 480px; border: 1px solid #334155; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-        h2 { margin: 0 0 20px 0; font-weight: 600; font-size: 1.2rem; text-align: center; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+        h2 { margin: 0 0 15px 0; font-weight: 600; font-size: 1rem; text-align: center; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* Asset Selector Grid */
+        /* Button Group Logic */
+        label { display: block; font-size: 0.65rem; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; font-weight: 800; }
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
         .chip-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
-        .chip { 
-            padding: 12px 5px; border-radius: 10px; background: #334155; border: 2px solid transparent;
-            color: #94a3b8; font-size: 0.85rem; font-weight: 700; text-align: center; cursor: pointer; transition: 0.2s;
+        
+        .btn-opt { 
+            padding: 12px; border-radius: 10px; background: #334155; border: 2px solid transparent;
+            color: #94a3b8; font-size: 0.85rem; font-weight: 700; text-align: center; cursor: pointer; transition: 0.1s;
         }
-        .chip.active { border-color: var(--accent); background: #1e3a8a; color: white; }
+        
+        /* Active States */
+        .btn-opt.active-blue { border-color: var(--accent); background: #1e3a8a; color: white; }
+        .btn-opt.active-green { border-color: #059669; background: #064e3b; color: #a7f3d0; }
+        .btn-opt.active-red { border-color: #b91c1c; background: #7f1d1d; color: #fecaca; }
 
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        label { display: block; font-size: 0.65rem; color: #94a3b8; margin-bottom: 6px; text-transform: uppercase; font-weight: 800; }
-
-        input, select { 
+        input { 
             width: 100%; padding: 14px; margin-bottom: 15px; border: 1px solid #334155; border-radius: 10px; 
             background: var(--input); color: white; box-sizing: border-box; font-size: 16px; -webkit-appearance: none;
         }
@@ -37,37 +42,35 @@
         
         .rr-line { margin-top: 15px; padding-top: 12px; border-top: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
         .rr-val { background: var(--accent); color: #0f172a; padding: 4px 12px; border-radius: 6px; font-weight: 900; }
-
         .btn-clear { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #334155; background: transparent; color: #64748b; font-weight: 600; margin-top: 15px; }
     </style>
 </head>
 <body>
 
 <div class="calc-card">
-    <h2>Select Asset</h2>
-    
+    <label>Select Asset</label>
     <div class="chip-grid" id="assetSelector">
-        <div class="chip active" onclick="selectAsset('es', this)">ES / MES</div>
-        <div class="chip" onclick="selectAsset('nq', this)">NQ / MNQ</div>
-        <div class="chip" onclick="selectAsset('cl', this)">CL / MCL</div>
-        <div class="chip" onclick="selectAsset('gc', this)">GC / MGC</div>
-        <div class="chip" onclick="selectAsset('si', this)">SI / SIL</div>
+        <div class="btn-opt active-blue" onclick="selectAsset('es', this)">ES / MES</div>
+        <div class="btn-opt" onclick="selectAsset('nq', this)">NQ / MNQ</div>
+        <div class="btn-opt" onclick="selectAsset('cl', this)">CL / MCL</div>
+        <div class="btn-opt" onclick="selectAsset('gc', this)">GC / MGC</div>
+        <div class="btn-opt" onclick="selectAsset('si', this)">SI / SIL</div>
     </div>
 
     <div class="grid">
         <div>
-            <label>Contract</label>
-            <select id="type" onchange="calculate()">
-                <option value="standard">Standard</option>
-                <option value="micro">Micro</option>
-            </select>
+            <label>Contract Type</label>
+            <div class="btn-group">
+                <div id="btn-std" class="btn-opt active-blue" onclick="setType('standard')">MINI</div>
+                <div id="btn-mic" class="btn-opt" onclick="setType('micro')">MICRO</div>
+            </div>
         </div>
         <div>
-            <label>Side</label>
-            <select id="direction" onchange="calculate()">
-                <option value="long">Long</option>
-                <option value="short">Short</option>
-            </select>
+            <label>Direction</label>
+            <div class="btn-group">
+                <div id="btn-long" class="btn-opt active-green" onclick="setDir('long')">LONG</div>
+                <div id="btn-short" class="btn-opt" onclick="setDir('short')">SHORT</div>
+            </div>
         </div>
     </div>
 
@@ -89,15 +92,11 @@
         </div>
     </div>
 
-    <div class="grid">
-        <div style="grid-column: span 2;">
-            <label>Contracts</label>
-            <input type="number" id="contracts" value="1" min="1" oninput="calculate()">
-        </div>
-    </div>
+    <label>Contracts</label>
+    <input type="number" id="contracts" value="1" min="1" oninput="calculate()">
 
     <div class="result-box" id="resultDisplay">
-        <span style="color:#64748b">Awaiting data...</span>
+        <span style="color:#64748b">Awaiting input...</span>
     </div>
 
     <button class="btn-clear" onclick="resetForm()">Clear All</button>
@@ -105,6 +104,9 @@
 
 <script>
     let currentTicker = 'es';
+    let currentType = 'standard';
+    let currentDir = 'long';
+
     const specs = {
         es: { tickSize: 0.25,  stdValue: 12.50, micValue: 1.25 },
         nq: { tickSize: 0.25,  stdValue: 5.00,  micValue: 0.50 },
@@ -115,24 +117,38 @@
 
     function selectAsset(ticker, el) {
         currentTicker = ticker;
-        // Update UI
-        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-        el.classList.add('active');
-        // Update Steps
-        const step = specs[ticker].tickSize;
-        ['entry', 'tp', 'sl'].forEach(id => document.getElementById(id).step = step);
+        document.querySelectorAll('#assetSelector .btn-opt').forEach(c => c.classList.remove('active-blue'));
+        el.classList.add('active-blue');
+        updateSteps();
         calculate();
+    }
+
+    function setType(val) {
+        currentType = val;
+        document.getElementById('btn-std').classList.toggle('active-blue', val === 'standard');
+        document.getElementById('btn-mic').classList.toggle('active-blue', val === 'micro');
+        calculate();
+    }
+
+    function setDir(val) {
+        currentDir = val;
+        document.getElementById('btn-long').classList.toggle('active-green', val === 'long');
+        document.getElementById('btn-short').classList.toggle('active-red', val === 'short');
+        calculate();
+    }
+
+    function updateSteps() {
+        const step = specs[currentTicker].tickSize;
+        ['entry', 'tp', 'sl'].forEach(id => document.getElementById(id).step = step);
     }
 
     function resetForm() {
         ['entry', 'tp', 'sl'].forEach(id => document.getElementById(id).value = '');
         document.getElementById('contracts').value = 1;
-        document.getElementById('resultDisplay').innerHTML = '<span style="color:#64748b">Awaiting data...</span>';
+        document.getElementById('resultDisplay').innerHTML = '<span style="color:#64748b">Awaiting input...</span>';
     }
 
     function calculate() {
-        const type = document.getElementById('type').value;
-        const direction = document.getElementById('direction').value;
         const entry = parseFloat(document.getElementById('entry').value);
         const tp = parseFloat(document.getElementById('tp').value);
         const sl = parseFloat(document.getElementById('sl').value);
@@ -141,10 +157,10 @@
         if (isNaN(entry) || isNaN(tp) || isNaN(sl) || isNaN(qty)) return;
 
         const s = specs[currentTicker];
-        const tickVal = (type === 'standard') ? s.stdValue : s.micValue;
+        const tickVal = (currentType === 'standard') ? s.stdValue : s.micValue;
         
-        const tpDiff = (direction === 'long') ? (tp - entry) : (entry - tp);
-        const slDiff = (direction === 'long') ? (entry - sl) : (sl - entry);
+        const tpDiff = (currentDir === 'long') ? (tp - entry) : (entry - tp);
+        const slDiff = (currentDir === 'long') ? (entry - sl) : (sl - entry);
         
         const tpTicks = Math.abs(tpDiff / s.tickSize);
         const slTicks = Math.abs(slDiff / s.tickSize);
