@@ -6,135 +6,55 @@
     <title>Futures Planner Pro</title>
     <style>
         :root { 
-            --bg: #0f172a; 
-            --card: #1e293b; 
-            --input: #0f172a; 
-            --accent: #38bdf8; 
-            --text: #f8fafc; 
-            --success: #4ade80; 
-            --danger: #f87171; 
+            --bg: #0f172a; --card: #1e293b; --input: #0f172a; 
+            --accent: #38bdf8; --text: #f8fafc; --success: #4ade80; --danger: #f87171; 
         }
         
-        body { 
-            font-family: -apple-system, system-ui, sans-serif; 
-            padding: 15px; 
-            background: var(--bg); 
-            color: var(--text); 
-            display: flex; 
-            justify-content: center;
-            margin: 0;
-        }
+        body { font-family: -apple-system, system-ui, sans-serif; padding: 15px; background: var(--bg); color: var(--text); display: flex; justify-content: center; margin: 0; }
+        .calc-card { background: var(--card); padding: 20px; border-radius: 20px; width: 100%; max-width: 480px; border: 1px solid #334155; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        h2 { margin: 0 0 20px 0; font-weight: 600; font-size: 1.2rem; text-align: center; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
 
-        .calc-card { 
-            background: var(--card); 
-            padding: 20px; 
-            border-radius: 20px; 
-            width: 100%; 
-            max-width: 480px; 
-            border: 1px solid #334155; 
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        /* Asset Selector Grid */
+        .chip-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
+        .chip { 
+            padding: 12px 5px; border-radius: 10px; background: #334155; border: 2px solid transparent;
+            color: #94a3b8; font-size: 0.85rem; font-weight: 700; text-align: center; cursor: pointer; transition: 0.2s;
         }
-
-        h2 { 
-            margin: 0 0 20px 0; 
-            font-weight: 600; 
-            font-size: 1.4rem; 
-            text-align: center; 
-            color: var(--accent);
-            letter-spacing: -0.5px;
-        }
+        .chip.active { border-color: var(--accent); background: #1e3a8a; color: white; }
 
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        
-        label { 
-            display: block; 
-            font-size: 0.65rem; 
-            color: #94a3b8; 
-            margin-bottom: 6px; 
-            text-transform: uppercase; 
-            font-weight: 800; 
-            letter-spacing: 0.8px; 
-        }
+        label { display: block; font-size: 0.65rem; color: #94a3b8; margin-bottom: 6px; text-transform: uppercase; font-weight: 800; }
 
-        /* Mobile Optimization: Large touch targets and no-zoom font size */
         input, select { 
-            width: 100%; 
-            padding: 14px; 
-            margin-bottom: 15px; 
-            border: 1px solid #334155; 
-            border-radius: 10px; 
-            background: var(--input); 
-            color: white; 
-            box-sizing: border-box; 
-            font-size: 16px; /* Prevents iOS zoom */
-            transition: all 0.2s;
-            -webkit-appearance: none;
+            width: 100%; padding: 14px; margin-bottom: 15px; border: 1px solid #334155; border-radius: 10px; 
+            background: var(--input); color: white; box-sizing: border-box; font-size: 16px; -webkit-appearance: none;
         }
+        input:focus { border-color: var(--accent); outline: none; }
 
-        input:focus { border-color: var(--accent); background: #172554; outline: none; }
-
-        .result-box { 
-            margin-top: 5px; 
-            padding: 20px; 
-            border-radius: 12px; 
-            background: rgba(15, 23, 42, 0.8); 
-            border-left: 4px solid var(--accent);
-        }
-
-        .profit { color: var(--success); font-weight: 800; font-size: 1.1rem; }
-        .loss { color: var(--danger); font-weight: 800; font-size: 1.1rem; }
+        .result-box { margin-top: 5px; padding: 20px; border-radius: 12px; background: rgba(15, 23, 42, 0.8); border-left: 4px solid var(--accent); }
+        .profit { color: var(--success); font-weight: 800; font-size: 1.2rem; }
+        .loss { color: var(--danger); font-weight: 800; font-size: 1.2rem; }
         
-        .rr-line { 
-            margin-top: 15px; 
-            padding-top: 12px; 
-            border-top: 1px solid #334155; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-        }
+        .rr-line { margin-top: 15px; padding-top: 12px; border-top: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+        .rr-val { background: var(--accent); color: #0f172a; padding: 4px 12px; border-radius: 6px; font-weight: 900; }
 
-        .rr-val { 
-            background: var(--accent); 
-            color: #0f172a; 
-            padding: 4px 12px; 
-            border-radius: 6px; 
-            font-weight: 900; 
-            font-size: 0.9rem; 
-        }
-
-        .btn-clear { 
-            width: 100%; 
-            padding: 14px; 
-            border-radius: 10px; 
-            border: 1px solid #334155; 
-            background: transparent; 
-            color: #94a3b8; 
-            font-weight: 600; 
-            margin-top: 15px;
-            cursor: pointer;
-        }
-
-        @media (max-width: 380px) {
-            .grid { grid-template-columns: 1fr; gap: 0; }
-        }
+        .btn-clear { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #334155; background: transparent; color: #64748b; font-weight: 600; margin-top: 15px; }
     </style>
 </head>
 <body>
 
 <div class="calc-card">
-    <h2>Futures Planner</h2>
+    <h2>Select Asset</h2>
     
+    <div class="chip-grid" id="assetSelector">
+        <div class="chip active" onclick="selectAsset('es', this)">ES / MES</div>
+        <div class="chip" onclick="selectAsset('nq', this)">NQ / MNQ</div>
+        <div class="chip" onclick="selectAsset('cl', this)">CL / MCL</div>
+        <div class="chip" onclick="selectAsset('gc', this)">GC / MGC</div>
+        <div class="chip" onclick="selectAsset('si', this)">SI / SIL</div>
+    </div>
+
     <div class="grid">
-        <div>
-            <label>Asset</label>
-            <select id="ticker" onchange="updateStep(); calculate();">
-                <option value="es">S&P 500 (ES/MES)</option>
-                <option value="nq">Nasdaq (NQ/MNQ)</option>
-                <option value="si">Silver (SI/SIL)</option>
-                <option value="gc">Gold (GC/MGC)</option>
-                <option value="cl">Crude Oil (CL/MCL)</option>
-            </select>
-        </div>
         <div>
             <label>Contract</label>
             <select id="type" onchange="calculate()">
@@ -142,9 +62,6 @@
                 <option value="micro">Micro</option>
             </select>
         </div>
-    </div>
-
-    <div class="grid">
         <div>
             <label>Side</label>
             <select id="direction" onchange="calculate()">
@@ -152,14 +69,14 @@
                 <option value="short">Short</option>
             </select>
         </div>
-        <div>
-            <label>Contracts</label>
-            <input type="number" id="contracts" value="1" min="1" oninput="calculate()">
-        </div>
     </div>
 
-    <label>Entry Price</label>
-    <input type="number" id="entry" step="0.25" placeholder="0.00" oninput="calculate()">
+    <div class="grid">
+        <div style="grid-column: span 2;">
+            <label>Entry Price</label>
+            <input type="number" id="entry" step="0.25" placeholder="0.00" oninput="calculate()">
+        </div>
+    </div>
 
     <div class="grid">
         <div>
@@ -172,14 +89,22 @@
         </div>
     </div>
 
+    <div class="grid">
+        <div style="grid-column: span 2;">
+            <label>Contracts</label>
+            <input type="number" id="contracts" value="1" min="1" oninput="calculate()">
+        </div>
+    </div>
+
     <div class="result-box" id="resultDisplay">
-        <span style="color:#64748b">Awaiting price data...</span>
+        <span style="color:#64748b">Awaiting data...</span>
     </div>
 
     <button class="btn-clear" onclick="resetForm()">Clear All</button>
 </div>
 
 <script>
+    let currentTicker = 'es';
     const specs = {
         es: { tickSize: 0.25,  stdValue: 12.50, micValue: 1.25 },
         nq: { tickSize: 0.25,  stdValue: 5.00,  micValue: 0.50 },
@@ -188,20 +113,24 @@
         cl: { tickSize: 0.01,  stdValue: 10.00, micValue: 1.00 }
     };
 
-    function updateStep() {
-        const ticker = document.getElementById('ticker').value;
+    function selectAsset(ticker, el) {
+        currentTicker = ticker;
+        // Update UI
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+        // Update Steps
         const step = specs[ticker].tickSize;
         ['entry', 'tp', 'sl'].forEach(id => document.getElementById(id).step = step);
+        calculate();
     }
 
     function resetForm() {
         ['entry', 'tp', 'sl'].forEach(id => document.getElementById(id).value = '');
         document.getElementById('contracts').value = 1;
-        document.getElementById('resultDisplay').innerHTML = '<span style="color:#64748b">Awaiting price data...</span>';
+        document.getElementById('resultDisplay').innerHTML = '<span style="color:#64748b">Awaiting data...</span>';
     }
 
     function calculate() {
-        const ticker = document.getElementById('ticker').value;
         const type = document.getElementById('type').value;
         const direction = document.getElementById('direction').value;
         const entry = parseFloat(document.getElementById('entry').value);
@@ -211,7 +140,7 @@
 
         if (isNaN(entry) || isNaN(tp) || isNaN(sl) || isNaN(qty)) return;
 
-        const s = specs[ticker];
+        const s = specs[currentTicker];
         const tickVal = (type === 'standard') ? s.stdValue : s.micValue;
         
         const tpDiff = (direction === 'long') ? (tp - entry) : (entry - tp);
@@ -225,15 +154,14 @@
         const rr = slDiff !== 0 ? Math.abs(tpDiff / slDiff).toFixed(2) : "0";
 
         document.getElementById('resultDisplay').innerHTML = `
-            <div style="margin-bottom:10px">Profit: <span class="profit">+$${profit.toLocaleString(undefined, {minimumFractionDigits: 2})}</span> <br><small style="color:#94a3b8">${Math.round(tpTicks)} ticks</small></div>
-            <div>Risk: <span class="loss">-$${loss.toLocaleString(undefined, {minimumFractionDigits: 2})}</span> <br><small style="color:#94a3b8">${Math.round(slTicks)} ticks</small></div>
+            <div style="margin-bottom:8px">Profit: <span class="profit">+$${profit.toLocaleString(undefined, {minimumFractionDigits: 2})}</span> <small style="color:#94a3b8; display:block;">${Math.round(tpTicks)} ticks</small></div>
+            <div>Risk: <span class="loss">-$${loss.toLocaleString(undefined, {minimumFractionDigits: 2})}</span> <small style="color:#94a3b8; display:block;">${Math.round(slTicks)} ticks</small></div>
             <div class="rr-line">
-                <span style="font-size:0.8rem; color:#94a3b8">Risk/Reward</span>
+                <span style="font-size:0.8rem; color:#94a3b8">R:R Ratio</span>
                 <span class="rr-val">${rr}:1</span>
             </div>
         `;
     }
-    updateStep();
 </script>
 
 </body>
