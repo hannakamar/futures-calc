@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Futures Planner Pro</title>
+    <title>Futures Planner Pro + Help Tooltip</title>
     <style>
         :root { 
             --bg: #0f172a; --card: #1e293b; --input: #0f172a; 
@@ -11,16 +11,16 @@
         }
         
         body { font-family: -apple-system, system-ui, sans-serif; padding: 15px; background: var(--bg); color: var(--text); display: flex; justify-content: center; margin: 0; }
-        .calc-card { background: var(--card); padding: 20px; border-radius: 20px; width: 100%; max-width: 480px; border: 1px solid #334155; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        .calc-card { background: var(--card); padding: 20px; border-radius: 20px; width: 100%; max-width: 480px; border: 1px solid #334155; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); position: relative; }
         
         label { display: block; font-size: 0.65rem; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; }
         .btn-group, .chip-grid { display: grid; gap: 8px; margin-bottom: 20px; }
         .btn-group { grid-template-columns: 1fr 1fr; }
-        .chip-grid { grid-template-columns: repeat(3, 1fr); }
+        .chip-grid { grid-template-columns: repeat(4, 1fr); }
         
         .btn-opt { 
-            padding: 12px; border-radius: 10px; background: #334155; border: 2px solid transparent;
-            color: #94a3b8; font-size: 0.85rem; font-weight: 700; text-align: center; cursor: pointer; transition: 0.1s;
+            padding: 10px 4px; border-radius: 10px; background: #334155; border: 2px solid transparent;
+            color: #94a3b8; font-size: 0.75rem; font-weight: 700; text-align: center; cursor: pointer; transition: 0.1s;
         }
         
         .btn-opt.active-blue { border-color: var(--accent); background: #1e3a8a; color: white; }
@@ -34,41 +34,96 @@
         }
         input:focus { border-color: var(--accent); outline: none; }
 
+        .risk-section { background: rgba(56, 189, 248, 0.05); padding: 15px; border-radius: 12px; border: 1px dashed #334155; margin-bottom: 20px; }
+
+        /* Quick Contract Buttons */
+        .contract-controls { display: flex; align-items: center; gap: 8px; margin-bottom: 15px; flex-wrap: nowrap; }
+        .qty-input-wrapper { flex: 1; min-width: 80px; }
+        .qty-input-wrapper input { margin-bottom: 0; padding: 10px; text-align: center; }
+        
+        .quick-btns { display: flex; gap: 4px; }
+        .round-btn { 
+            width: 30px; height: 30px; border-radius: 50%; border: 1px solid #475569; 
+            background: #1e293b; color: var(--accent); font-weight: 800; font-size: 0.7rem;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+        }
+        .round-btn.clear-x { color: var(--danger); border-color: var(--danger); opacity: 0.6; }
+
+        /* Tooltip & Add Mode Styles */
+        .mode-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .mode-toggle-container { display: flex; align-items: center; gap: 8px; }
+        .info-icon { 
+            width: 16px; height: 16px; border-radius: 50%; background: #475569; color: white; 
+            font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold;
+        }
+        .mode-toggle { 
+            padding: 4px 8px; border-radius: 6px; font-size: 0.6rem; font-weight: 900; 
+            cursor: pointer; border: 1px solid #334155; color: #64748b;
+        }
+        .mode-toggle.active { background: var(--success); color: white; border-color: var(--success); }
+
+        /* Modal/Popup */
+        .help-popup { 
+            display: none; position: absolute; background: #0f172a; border: 1px solid var(--accent); 
+            padding: 12px; border-radius: 10px; z-index: 100; font-size: 0.75rem; width: 200px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); color: #cbd5e1;
+        }
+
         .result-box { margin-top: 5px; padding: 20px; border-radius: 12px; background: rgba(15, 23, 42, 0.8); border-left: 4px solid var(--accent); }
         .profit { color: var(--success); font-weight: 800; font-size: 1.2rem; }
         .loss { color: var(--danger); font-weight: 800; font-size: 1.2rem; }
+        .suggested-qty { color: var(--accent); font-weight: 800; font-size: 1.2rem; }
         
         .rr-line { margin-top: 15px; padding-top: 12px; border-top: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
         .rr-val { background: var(--accent); color: #0f172a; padding: 4px 12px; border-radius: 6px; font-weight: 900; }
         
         .btn-clear { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #334155; background: transparent; color: #64748b; font-weight: 600; margin-top: 15px; cursor: pointer; }
-        
-        .quote-container { margin-top: 25px; text-align: center; padding: 10px; border-top: 1px solid #334155; }
-        #quote-text { font-style: italic; color: #64748b; font-size: 0.8rem; line-height: 1.4; letter-spacing: 1px; }
     </style>
 </head>
 <body>
 
 <div class="calc-card">
+    <div id="helpPopup" class="help-popup" style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
+        <strong>How it works:</strong><br><br>
+        • <b>OFF:</b> Pressing [5] sets contracts to 5.<br>
+        • <b>ON (Add Mode):</b> Pressing [5] then [3] sets contracts to 8.<br><br>
+        <button onclick="closeHelp()" style="width:100%; background:var(--accent); border:none; border-radius:4px; padding:4px; font-weight:bold; cursor:pointer;">Got it</button>
+    </div>
+
     <label>Asset</label>
     <div class="chip-grid" id="assetSelector">
-        <div class="btn-opt active-blue" onclick="selectAsset('es', this)">ES / MES</div>
-        <div class="btn-opt" onclick="selectAsset('nq', this)">NQ / MNQ</div>
-        <div class="btn-opt" onclick="selectAsset('cl', this)">CL / MCL</div>
-        <div class="btn-opt" onclick="selectAsset('gc', this)">GC / MGC</div>
-        <div class="btn-opt" onclick="selectAsset('si', this)">SI / SIL</div>
+        <div class="btn-opt active-blue" onclick="selectAsset('es', this)">ES</div>
+        <div class="btn-opt" onclick="selectAsset('nq', this)">NQ</div>
+        <div class="btn-opt" onclick="selectAsset('ym', this)">YM</div>
+        <div class="btn-opt" onclick="selectAsset('rty', this)">RTY</div>
+        <div class="btn-opt" onclick="selectAsset('cl', this)">CL</div>
+        <div class="btn-opt" onclick="selectAsset('gc', this)">GC</div>
+        <div class="btn-opt" onclick="selectAsset('si', this)">SI</div>
+    </div>
+
+    <div class="risk-section">
+        <div class="grid">
+            <div>
+                <label>Account ($)</label>
+                <input type="number" id="balance" value="50000" oninput="calculate()">
+            </div>
+            <div>
+                <label>Risk (%)</label>
+                <input type="number" id="riskPercent" value="1" step="0.1" oninput="calculate()">
+            </div>
+        </div>
     </div>
 
     <div class="grid">
         <div>
-            <label>Contract</label>
+            <label>Size</label>
             <div class="btn-group">
                 <div id="btn-std" class="btn-opt active-blue" onclick="setType('standard')">MINI</div>
                 <div id="btn-mic" class="btn-opt" onclick="setType('micro')">MICRO</div>
             </div>
         </div>
         <div>
-            <label>Direction</label>
+            <label>Dir</label>
             <div class="btn-group">
                 <div id="btn-long" class="btn-opt active-green" onclick="setDir('long')">LONG</div>
                 <div id="btn-short" class="btn-opt" onclick="setDir('short')">SHORT</div>
@@ -76,58 +131,77 @@
         </div>
     </div>
 
-    <label>Entry Price</label>
-    <input type="number" id="entry" step="0.25" placeholder="0.00" oninput="calculate()">
-
+    <label>Entry / TP / SL</label>
     <div class="grid">
-        <div>
-            <label>Target Price</label>
-            <input type="number" id="tp" step="0.25" placeholder="Profit" oninput="calculate()">
-        </div>
-        <div>
-            <label>Stop Price</label>
-            <input type="number" id="sl" step="0.25" placeholder="Loss" oninput="calculate()">
-        </div>
+        <input type="number" id="entry" placeholder="Entry" oninput="calculate()" style="grid-column: span 2; margin-bottom: 10px;">
+        <input type="number" id="tp" placeholder="Profit" oninput="calculate()">
+        <input type="number" id="sl" placeholder="Stop" oninput="calculate()">
     </div>
 
-    <label>Contracts</label>
-    <input type="number" id="contracts" value="1" min="1" oninput="calculate()">
+    <div class="mode-header">
+        <label style="margin:0">Contracts Override</label>
+        <div class="mode-toggle-container">
+            <div class="info-icon" onclick="openHelp()">?</div>
+            <div id="addModeBtn" class="mode-toggle" onclick="toggleAddMode()">ADD MODE: OFF</div>
+        </div>
+    </div>
+    
+    <div class="contract-controls">
+        <div class="qty-input-wrapper">
+            <input type="number" id="contracts" value="0" min="0" oninput="calculate()">
+        </div>
+        <div class="quick-btns">
+            <div class="round-btn" onclick="quickQty(1)">1</div>
+            <div class="round-btn" onclick="quickQty(3)">3</div>
+            <div class="round-btn" onclick="quickQty(5)">5</div>
+            <div class="round-btn" onclick="quickQty(7)">7</div>
+            <div class="round-btn" onclick="quickQty(10)">10</div>
+            <div class="round-btn" onclick="quickQty(15)">15</div>
+            <div class="round-btn clear-x" onclick="quickQty(0)">×</div>
+        </div>
+    </div>
 
     <div class="result-box" id="resultDisplay">
         <span style="color:#64748b">Ready to trade...</span>
     </div>
 
     <button class="btn-clear" onclick="resetForm()">Clear All</button>
-
-    <div class="quote-container">
-        <div id="quote-text">"AGAINST ALL ODDS"</div>
-    </div>
 </div>
 
 <script>
     let currentTicker = 'es';
     let currentType = 'standard';
     let currentDir = 'long';
-
-    const quotes = ["AGAINST ALL ODDS"];
+    let isAddMode = false;
 
     const specs = {
-        es: { tickSize: 0.25,  stdValue: 12.50, micValue: 1.25 },
-        nq: { tickSize: 0.25,  stdValue: 5.00,  micValue: 0.50 },
-        si: { tickSize: 0.005, stdValue: 25.00, micValue: 5.00 },
-        gc: { tickSize: 0.10,  stdValue: 10.00, micValue: 1.00 },
-        cl: { tickSize: 0.01,  stdValue: 10.00, micValue: 1.00 }
+        es:  { tickSize: 0.25,  stdValue: 12.50, micValue: 1.25 },
+        nq:  { tickSize: 0.25,  stdValue: 5.00,  micValue: 0.50 },
+        ym:  { tickSize: 1.00,  stdValue: 5.00,  micValue: 0.50 },
+        rty: { tickSize: 0.10,  stdValue: 5.00,  micValue: 0.50 },
+        si:  { tickSize: 0.005, stdValue: 25.00, micValue: 5.00 },
+        gc:  { tickSize: 0.10,  stdValue: 10.00, micValue: 1.00 },
+        cl:  { tickSize: 0.01,  stdValue: 10.00, micValue: 1.00 }
     };
 
-    // ENSURES APP LOADS PROPERLY EVERY TIME
-    window.onload = function() {
-        updateSteps();
-        setRandomQuote();
-    };
+    function openHelp() { document.getElementById('helpPopup').style.display = 'block'; }
+    function closeHelp() { document.getElementById('helpPopup').style.display = 'none'; }
 
-    function setRandomQuote() {
-        const randomIndex = Math.floor(Math.random() * quotes.length);
-        document.getElementById('quote-text').innerText = `"${quotes[randomIndex]}"`;
+    function toggleAddMode() {
+        isAddMode = !isAddMode;
+        const btn = document.getElementById('addModeBtn');
+        btn.innerText = `ADD MODE: ${isAddMode ? 'ON' : 'OFF'}`;
+        btn.classList.toggle('active', isAddMode);
+    }
+
+    function quickQty(val) {
+        const input = document.getElementById('contracts');
+        let current = parseInt(input.value) || 0;
+        
+        if (val === 0) { input.value = 0; }
+        else if (isAddMode) { input.value = current + val; }
+        else { input.value = val; }
+        calculate();
     }
 
     function selectAsset(ticker, el) {
@@ -159,36 +233,49 @@
 
     function resetForm() {
         ['entry', 'tp', 'sl'].forEach(id => document.getElementById(id).value = '');
-        document.getElementById('contracts').value = 1;
+        document.getElementById('contracts').value = 0;
         document.getElementById('resultDisplay').innerHTML = '<span style="color:#64748b">Ready to trade...</span>';
-        setRandomQuote();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function calculate() {
         const entry = parseFloat(document.getElementById('entry').value);
         const tp = parseFloat(document.getElementById('tp').value);
         const sl = parseFloat(document.getElementById('sl').value);
-        const qty = parseInt(document.getElementById('contracts').value);
+        const balance = parseFloat(document.getElementById('balance').value);
+        const riskPct = parseFloat(document.getElementById('riskPercent').value);
+        let qtyOverride = parseInt(document.getElementById('contracts').value);
 
-        if (isNaN(entry) || isNaN(tp) || isNaN(sl) || isNaN(qty)) return;
+        if (isNaN(entry) || isNaN(tp) || isNaN(sl)) return;
 
         const s = specs[currentTicker];
         const tickVal = (currentType === 'standard') ? s.stdValue : s.micValue;
         
-        const tpDiff = (currentDir === 'long') ? (tp - entry) : (entry - tp);
-        const slDiff = (currentDir === 'long') ? (entry - sl) : (sl - entry);
+        const tpDiff = Math.abs(tp - entry);
+        const slDiff = Math.abs(entry - sl);
         
-        const tpTicks = Math.abs(tpDiff / s.tickSize);
-        const slTicks = Math.abs(slDiff / s.tickSize);
+        const tpTicks = tpDiff / s.tickSize;
+        const slTicks = slDiff / s.tickSize;
+
+        const dollarRiskAllowed = balance * (riskPct / 100);
+        const riskPerContract = slTicks * tickVal;
         
-        const profit = tpTicks * tickVal * qty;
-        const loss = slTicks * tickVal * qty;
-        const rr = slDiff !== 0 ? Math.abs(tpDiff / slDiff).toFixed(2) : "0";
+        let suggestedQty = riskPerContract > 0 ? Math.floor(dollarRiskAllowed / riskPerContract) : 0;
+        if (suggestedQty < 1 && entry > 0) suggestedQty = 1;
+
+        const finalQty = qtyOverride > 0 ? qtyOverride : suggestedQty;
+        
+        const profit = tpTicks * tickVal * finalQty;
+        const loss = slTicks * tickVal * finalQty;
+        const rr = slDiff !== 0 ? (tpDiff / slDiff).toFixed(2) : "0";
 
         document.getElementById('resultDisplay').innerHTML = `
-            <div style="margin-bottom:8px">Profit: <span class="profit">+$${profit.toLocaleString(undefined, {minimumFractionDigits: 2})}</span> <small style="color:#94a3b8; display:block;">${Math.round(tpTicks)} ticks</small></div>
-            <div>Risk: <span class="loss">-$${loss.toLocaleString(undefined, {minimumFractionDigits: 2})}</span> <small style="color:#94a3b8; display:block;">${Math.round(slTicks)} ticks</small></div>
+            <div style="margin-bottom:12px; border-bottom:1px solid #334155; padding-bottom:8px;">
+                <label style="margin:0">Position Size</label>
+                <span class="suggested-qty">${finalQty} Contract(s)</span>
+                <small style="color:#94a3b8; display:block;">Risking $${(loss).toLocaleString()} (${((loss/balance)*100).toFixed(2)}% of acct)</small>
+            </div>
+            <div style="margin-bottom:8px">Profit: <span class="profit">+$${profit.toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>
+            <div>Risk: <span class="loss">-$${loss.toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>
             <div class="rr-line">
                 <span style="font-size:0.8rem; color:#94a3b8">R:R Ratio</span>
                 <span class="rr-val">${rr}:1</span>
