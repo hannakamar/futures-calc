@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Multi-Asset Futures Planner</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; padding: 20px; background: #0f172a; color: #f8fafc; }
+        .calc-card { background: #1e293b; padding: 30px; border-radius: 16px; max-width: 500px; margin: auto; border: 1px solid #334155; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        label { display: block; font-size: 0.7rem; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; font-weight: bold; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #334155; border-radius: 8px; background: #0f172a; color: white; box-sizing: border-box; font-size: 1rem; transition: border 0.2s; }
+        input:focus { border-color: #38bdf8; outline: none; }
+        .result-box { margin-top: 10px; padding: 20px; border-radius: 12px; background: #0f172a; border-top: 4px solid #38bdf8; }
+        .profit { color: #4ade80; font-weight: bold; }
+        .loss { color: #f87171; font-weight: bold; }
+        .rr-line { margin-top: 15px; padding-top: 15px; border-top: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+        .rr-val { background: #38bdf8; color: #0f172a; padding: 2px 10px; border-radius: 6px; font-weight: 800; }
+        h2 { margin: 0 0 25px 0; font-weight: 300; letter-spacing: -1px; }
+    </style>
+</head>
+<body>
+
+<div class="calc-card">
+    <h2>Futures Calculator</h2>
+    
+    <div class="grid">
+        <div>
+            <label>Asset</label>
+            <select id="ticker" onchange="updateStep(); calculate();">
+                <option value="es">S&P 500 (ES/MES)</option>
+                <option value="nq">Nasdaq (NQ/MNQ)</option>
+                <option value="si">Silver (SI/SIL)</option>
+                <option value="gc">Gold (GC/MGC)</option>
+                <option value="cl">Crude Oil (CL/MCL)</option>
+            </select>
+        </div>
+        <div>
+            <label>Contract</label>
+            <select id="type" onchange="calculate()">
+                <option value="standard">Standard</option>
+                <option value="micro">Micro</option>
+            </select>
+        </div>
+    </div>
+
+    <label>Side</label>
+    <select id="direction" onchange="calculate()">
+        <option value="long">Long (Buy)</option>
+        <option value="short">Short (Sell)</option>
+    </select>
+
+    <div class="grid">
+        <div>
+            <label>Entry Price</label>
+            <input type="number" id="entry" step="0.25" placeholder="0.00" oninput="calculate()">
+        </div>
+        <div>
+            <label>Contracts</label>
+            <input type="number" id="contracts" value="1" min="1" oninput="calculate()">
+        </div>
+    </div>
+
+    <div class="grid">
+        <div>
+            <label>Target Price</label>
+            <input type="number" id="tp" step="0.25" placeholder="Profit" oninput="calculate()">
+        </div>
+        <div>
+            <label>Stop Price</label>
+            <input type="number" id="sl" step="0.25" placeholder="Loss" oninput="calculate()">
+        </div>
+    </div>
+
+    <div class="result-box" id="resultDisplay">
+        Awaiting price data...
+    </div>
+</div>
+
+<script>
+    const specs = {
+        es: { tickSize: 0.25,  stdValue: 12.50, micValue: 1.25 },
+        nq: { tickSize: 0.25,  stdValue: 5.00,  micValue: 0.50 },
+        si: { tickSize: 0.005, stdValue: 25.00, micValue: 5.00 },
+        gc: { tickSize: 0.10,  stdValue: 10.00, micValue: 1.00 },
+        cl: { tickSize: 0.01,  stdValue: 10.00, micValue: 1.00 }
+    };
+
+    function updateStep() {
+        const ticker = document.getElementById('ticker').value;
+        const step = specs[ticker].tickSize;
+        document.getElementById('entry').step = step;
+        document.getElementById('tp').step = step;
+        document.getElementById('sl').step = step;
+    }
+
+    function calculate() {
+        const ticker = document.getElementById('ticker').value;
+        const type = document.getElementById('type').value;
+        const direction = document.getElementById('direction').value;
+        const entry = parseFloat(document.getElementById('entry').value);
+        const tp = parseFloat(document.getElementById('tp').value);
+        const sl = parseFloat(document.getElementById('sl').value);
+        const qty = parseInt(document.getElementById('contracts').value);
+
+        if (isNaN(entry) || isNaN(tp) || isNaN(sl) || isNaN(qty)) return;
+
+        const s = specs[ticker];
+        const tickVal = (type === 'standard') ? s.stdValue : s.micValue;
+        
+        // Difference logic based on trade side
+        const tpDiff = (direction === 'long') ? (tp - entry) : (entry - tp);
+        const slDiff = (direction === 'long') ? (entry - sl) : (sl - entry);
+        
+        const tpTicks = tpDiff / s.tickSize;
+        const slTicks = slDiff / s.tickSize;
+        
+        const profit = tpTicks * tickVal * qty;
+        const loss = slTicks * tickVal * qty;
+        const rr = slDiff !== 0 ? (tpDiff / slDiff).toFixed(2) : "0";
+
+        document.getElementById('resultDisplay').innerHTML = `
+            <div style="margin-bottom:8px">Profit: <span class="profit">+$${profit.toLocaleString(undefined, {minimumFractionDigits: 2})}</span> <small>(${Math.round(tpTicks)} ticks)</small></div>
+            <div>Risk: <span class="loss">-$${loss.toLocaleString(undefined, {minimumFractionDigits: 2})}</span> <small>(${Math.round(slTicks)} ticks)</small></div>
+            <div class="rr-line">
+                <span>Risk/Reward Ratio</span>
+                <span class="rr-val">${rr}:1</span>
+            </div>
+        `;
+    }
+</script>
+
+</body>
+</html>
