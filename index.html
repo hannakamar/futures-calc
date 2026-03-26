@@ -12,19 +12,17 @@
         
         body { font-family: -apple-system, system-ui, sans-serif; padding: 15px; background: var(--bg); color: var(--text); display: flex; justify-content: center; margin: 0; }
         .calc-card { background: var(--card); padding: 20px; border-radius: 20px; width: 100%; max-width: 480px; border: 1px solid #334155; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-        h2 { margin: 0 0 15px 0; font-weight: 600; font-size: 1rem; text-align: center; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
-
-        /* Button Group Logic */
-        label { display: block; font-size: 0.65rem; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; font-weight: 800; }
-        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
-        .chip-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
+        
+        label { display: block; font-size: 0.65rem; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; }
+        .btn-group, .chip-grid { display: grid; gap: 8px; margin-bottom: 20px; }
+        .btn-group { grid-template-columns: 1fr 1fr; }
+        .chip-grid { grid-template-columns: repeat(3, 1fr); }
         
         .btn-opt { 
             padding: 12px; border-radius: 10px; background: #334155; border: 2px solid transparent;
             color: #94a3b8; font-size: 0.85rem; font-weight: 700; text-align: center; cursor: pointer; transition: 0.1s;
         }
         
-        /* Active States */
         .btn-opt.active-blue { border-color: var(--accent); background: #1e3a8a; color: white; }
         .btn-opt.active-green { border-color: #059669; background: #064e3b; color: #a7f3d0; }
         .btn-opt.active-red { border-color: #b91c1c; background: #7f1d1d; color: #fecaca; }
@@ -42,13 +40,18 @@
         
         .rr-line { margin-top: 15px; padding-top: 12px; border-top: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
         .rr-val { background: var(--accent); color: #0f172a; padding: 4px 12px; border-radius: 6px; font-weight: 900; }
+        
         .btn-clear { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #334155; background: transparent; color: #64748b; font-weight: 600; margin-top: 15px; }
+        
+        /* Quote Style */
+        .quote-container { margin-top: 25px; text-align: center; padding: 10px; border-top: 1px solid #334155; }
+        #quote-text { font-style: italic; color: #64748b; font-size: 0.8rem; line-height: 1.4; }
     </style>
 </head>
 <body>
 
 <div class="calc-card">
-    <label>Select Asset</label>
+    <label>Asset</label>
     <div class="chip-grid" id="assetSelector">
         <div class="btn-opt active-blue" onclick="selectAsset('es', this)">ES / MES</div>
         <div class="btn-opt" onclick="selectAsset('nq', this)">NQ / MNQ</div>
@@ -59,7 +62,7 @@
 
     <div class="grid">
         <div>
-            <label>Contract Type</label>
+            <label>Contract</label>
             <div class="btn-group">
                 <div id="btn-std" class="btn-opt active-blue" onclick="setType('standard')">MINI</div>
                 <div id="btn-mic" class="btn-opt" onclick="setType('micro')">MICRO</div>
@@ -74,12 +77,8 @@
         </div>
     </div>
 
-    <div class="grid">
-        <div style="grid-column: span 2;">
-            <label>Entry Price</label>
-            <input type="number" id="entry" step="0.25" placeholder="0.00" oninput="calculate()">
-        </div>
-    </div>
+    <label>Entry Price</label>
+    <input type="number" id="entry" step="0.25" placeholder="0.00" oninput="calculate()">
 
     <div class="grid">
         <div>
@@ -96,16 +95,36 @@
     <input type="number" id="contracts" value="1" min="1" oninput="calculate()">
 
     <div class="result-box" id="resultDisplay">
-        <span style="color:#64748b">Awaiting input...</span>
+        <span style="color:#64748b">Ready to trade...</span>
     </div>
 
     <button class="btn-clear" onclick="resetForm()">Clear All</button>
+
+    <div class="quote-container">
+        <div id="quote-text">"The goal is not to be right, but to stay green."</div>
+    </div>
 </div>
 
 <script>
     let currentTicker = 'es';
     let currentType = 'standard';
     let currentDir = 'long';
+
+    const quotes = [
+        "Trade the market in front of you, not the one you want.",
+        "The goal of a successful trader is to make the best trades. Money is secondary.",
+        "Don't focus on making money; focus on protecting what you have.",
+        "Success is the ability to go from failure to failure without losing your enthusiasm — Winston Churchill.",
+        ".כל הטוב עוד לפנייך",
+        "because he's Will — Philip Pullman.",
+        "يَومًا ما، حِينَ تَلمَسُ أَطرافَ حُلمِكَ، سَتَشكُرُ نَفسَكَ علىٰ كُلِّ تَحَدٍّ واجَهتَهُ، وَأَلَمٍ صافَحتَهُ، وَجُرحٍ صالَحتَهُ، وَقَرارٍ شُجاعٍ اتَّخَذتَهُ، علىٰ كُلِّ إِحباطٍ تَجاهَلتَهُ، وَسَريرٍ آمِنٍ غادَرتَهُ. سَتَشكُرُها علىٰ كُلِّ الخِياراتِ الصَّغيرَةِ وَالقَراراتِ الكَبيرَةِ الَّتي صَنَعَت واقِعًا تَعتَزُّ بِهِ وَتَطمَئِنُّ لَهُ.",
+        "Amateurs hope. Professionals have a plan.",
+        "Count your blessings, not your problems. 
+Count your own blessings, not someone else's. 
+Remember that jealousy is when you count someone else's blessings instead of your own. — Roy T. Bennett.",
+        "Plan the trade and trade the plan."
+        "“I am the greatest, I said that even before I knew I was.” -Muhammad Ali ."
+    ];
 
     const specs = {
         es: { tickSize: 0.25,  stdValue: 12.50, micValue: 1.25 },
@@ -114,6 +133,11 @@
         gc: { tickSize: 0.10,  stdValue: 10.00, micValue: 1.00 },
         cl: { tickSize: 0.01,  stdValue: 10.00, micValue: 1.00 }
     };
+
+    function setRandomQuote() {
+        const randomIndex = Math.floor(Math.random() * quotes.length);
+        document.getElementById('quote-text').innerText = `"${quotes[randomIndex]}"`;
+    }
 
     function selectAsset(ticker, el) {
         currentTicker = ticker;
@@ -145,7 +169,8 @@
     function resetForm() {
         ['entry', 'tp', 'sl'].forEach(id => document.getElementById(id).value = '');
         document.getElementById('contracts').value = 1;
-        document.getElementById('resultDisplay').innerHTML = '<span style="color:#64748b">Awaiting input...</span>';
+        document.getElementById('resultDisplay').innerHTML = '<span style="color:#64748b">Ready to trade...</span>';
+        setRandomQuote();
     }
 
     function calculate() {
@@ -178,6 +203,10 @@
             </div>
         `;
     }
+
+    // Initialize
+    updateSteps();
+    setRandomQuote();
 </script>
 
 </body>
