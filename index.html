@@ -41,11 +41,10 @@
         .rr-line { margin-top: 15px; padding-top: 12px; border-top: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
         .rr-val { background: var(--accent); color: #0f172a; padding: 4px 12px; border-radius: 6px; font-weight: 900; }
         
-        .btn-clear { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #334155; background: transparent; color: #64748b; font-weight: 600; margin-top: 15px; }
+        .btn-clear { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #334155; background: transparent; color: #64748b; font-weight: 600; margin-top: 15px; cursor: pointer; }
         
-        /* Quote Style */
         .quote-container { margin-top: 25px; text-align: center; padding: 10px; border-top: 1px solid #334155; }
-        #quote-text { font-style: italic; color: #64748b; font-size: 0.8rem; line-height: 1.4; }
+        #quote-text { font-style: italic; color: #64748b; font-size: 0.8rem; line-height: 1.4; letter-spacing: 1px; }
     </style>
 </head>
 <body>
@@ -101,7 +100,7 @@
     <button class="btn-clear" onclick="resetForm()">Clear All</button>
 
     <div class="quote-container">
-        <div id="quote-text">"The goal is not to be right, but to stay green."</div>
+        <div id="quote-text">"AGAINST ALL ODDS"</div>
     </div>
 </div>
 
@@ -110,10 +109,7 @@
     let currentType = 'standard';
     let currentDir = 'long';
 
-    const quotes = [
-        "AGAINST ALL ODDS"
-        
-    ];
+    const quotes = ["AGAINST ALL ODDS"];
 
     const specs = {
         es: { tickSize: 0.25,  stdValue: 12.50, micValue: 1.25 },
@@ -121,6 +117,12 @@
         si: { tickSize: 0.005, stdValue: 25.00, micValue: 5.00 },
         gc: { tickSize: 0.10,  stdValue: 10.00, micValue: 1.00 },
         cl: { tickSize: 0.01,  stdValue: 10.00, micValue: 1.00 }
+    };
+
+    // ENSURES APP LOADS PROPERLY EVERY TIME
+    window.onload = function() {
+        updateSteps();
+        setRandomQuote();
     };
 
     function setRandomQuote() {
@@ -160,6 +162,7 @@
         document.getElementById('contracts').value = 1;
         document.getElementById('resultDisplay').innerHTML = '<span style="color:#64748b">Ready to trade...</span>';
         setRandomQuote();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function calculate() {
@@ -192,10 +195,6 @@
             </div>
         `;
     }
-
-    // Initialize
-    updateSteps();
-    setRandomQuote();
 </script>
 
 </body>
